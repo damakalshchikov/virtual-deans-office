@@ -2,7 +2,7 @@
 from datetime import date
 from werkzeug.security import generate_password_hash
 from app import create_app
-from models import db, User, Organization, Teacher, Curator, Student, Task
+from models import db, User, Organization, Kafedra, Teacher, Curator, Student, Task
 
 app = create_app()
 
@@ -11,8 +11,19 @@ with app.app_context():
     db.create_all()
 
     # ── Организация ──────────────────────────────────────────────────────────
-    org = Organization(name="ООО «Технологии будущего»")
+    org = Organization(
+        name="ООО «Технологии будущего»",
+        yur_adres="г. Москва, ул. Ленина, д. 1",
+    )
     db.session.add(org)
+    db.session.flush()
+
+    # ── Кафедра ──────────────────────────────────────────────────────────────
+    kafedra = Kafedra(
+        name="Кафедра информационных систем",
+        faculty="Факультет информатики и вычислительной техники",
+    )
+    db.session.add(kafedra)
     db.session.flush()
 
     # ── Пользователи ─────────────────────────────────────────────────────────
@@ -27,12 +38,20 @@ with app.app_context():
     # ── Профили ──────────────────────────────────────────────────────────────
     teacher = Teacher(
         user_id=teacher_user.id,
-        full_name="Иванов Пётр Сергеевич",
-        department="Кафедра информационных систем",
+        last_name="Иванов",
+        first_name="Пётр",
+        middle_name="Сергеевич",
+        position="Доцент",
+        email="ivanov@university.ru",
+        kafedra_id=kafedra.id,
     )
     curator = Curator(
         user_id=curator_user.id,
-        full_name="Смирнова Анна Вячеславовна",
+        last_name="Смирнова",
+        first_name="Анна",
+        middle_name="Вячеславовна",
+        position="Менеджер по персоналу",
+        email="smirnova@techfuture.ru",
         organization_id=org.id,
     )
     db.session.add_all([teacher, curator])
@@ -40,9 +59,14 @@ with app.app_context():
 
     student = Student(
         user_id=student_user.id,
-        full_name="Петров Алексей Николаевич",
+        last_name="Петров",
+        first_name="Алексей",
+        middle_name="Николаевич",
         group_name="ИС-21",
         specialty="09.03.02 Информационные системы и технологии",
+        email="petrov@student.university.ru",
+        average_grade=4.50,
+        kafedra_id=kafedra.id,
         internship_start=date(2026, 2, 3),
         internship_end=date(2026, 3, 28),
         organization_id=org.id,

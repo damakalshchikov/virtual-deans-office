@@ -13,9 +13,9 @@ class User(UserMixin, db.Model):
     role      = db.Column(db.String(32), nullable=False)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
 
-    student  = db.relationship("Student", backref="user", uselist=False)
-    teacher  = db.relationship("Teacher", backref="user", uselist=False)
-    curator  = db.relationship("Curator", backref="user", uselist=False)
+    student = db.relationship("Student", backref="user", uselist=False)
+    teacher = db.relationship("Teacher", backref="user", uselist=False)
+    curator = db.relationship("Curator", backref="user", uselist=False)
 
     def get_id(self):
         return str(self.id)
@@ -38,22 +38,45 @@ class User(UserMixin, db.Model):
 class Organization(db.Model):
     __tablename__ = "organizations"
 
-    id   = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(256), nullable=False)
+    id        = db.Column(db.Integer, primary_key=True)
+    name      = db.Column(db.String(256), nullable=False)
+    yur_adres = db.Column(db.String(255))
 
     students = db.relationship("Student", backref="organization")
     curators = db.relationship("Curator", backref="organization")
 
 
+class Kafedra(db.Model):
+    __tablename__ = "kafedras"
+
+    id      = db.Column(db.Integer, primary_key=True)
+    name    = db.Column(db.String(255), nullable=False)
+    faculty = db.Column(db.String(100), nullable=False)
+
+    teachers = db.relationship("Teacher", backref="kafedra")
+    students = db.relationship("Student", backref="kafedra")
+
+
 class Teacher(db.Model):
     __tablename__ = "teachers"
 
-    id         = db.Column(db.Integer, primary_key=True)
-    user_id    = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
-    full_name  = db.Column(db.String(128), nullable=False)
-    department = db.Column(db.String(128), nullable=False)
+    id          = db.Column(db.Integer, primary_key=True)
+    user_id     = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
+    last_name   = db.Column(db.String(64), nullable=False)
+    first_name  = db.Column(db.String(64), nullable=False)
+    middle_name = db.Column(db.String(64))
+    position    = db.Column(db.String(100))
+    email       = db.Column(db.String(100))
+    kafedra_id  = db.Column(db.Integer, db.ForeignKey("kafedras.id"))
 
     students = db.relationship("Student", backref="teacher")
+
+    @property
+    def full_name(self):
+        parts = [self.last_name, self.first_name]
+        if self.middle_name:
+            parts.append(self.middle_name)
+        return " ".join(parts)
 
 
 class Curator(db.Model):
@@ -61,10 +84,21 @@ class Curator(db.Model):
 
     id              = db.Column(db.Integer, primary_key=True)
     user_id         = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
-    full_name       = db.Column(db.String(128), nullable=False)
+    last_name       = db.Column(db.String(64), nullable=False)
+    first_name      = db.Column(db.String(64), nullable=False)
+    middle_name     = db.Column(db.String(64))
+    position        = db.Column(db.String(100))
+    email           = db.Column(db.String(100))
     organization_id = db.Column(db.Integer, db.ForeignKey("organizations.id"))
 
     students = db.relationship("Student", backref="curator")
+
+    @property
+    def full_name(self):
+        parts = [self.last_name, self.first_name]
+        if self.middle_name:
+            parts.append(self.middle_name)
+        return " ".join(parts)
 
 
 class Student(db.Model):
@@ -72,9 +106,14 @@ class Student(db.Model):
 
     id               = db.Column(db.Integer, primary_key=True)
     user_id          = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
-    full_name        = db.Column(db.String(128), nullable=False)
+    last_name        = db.Column(db.String(64), nullable=False)
+    first_name       = db.Column(db.String(64), nullable=False)
+    middle_name      = db.Column(db.String(64))
     group_name       = db.Column(db.String(64), nullable=False)
-    specialty        = db.Column(db.String(256), nullable=False)
+    specialty        = db.Column(db.String(256))
+    email            = db.Column(db.String(255))
+    average_grade    = db.Column(db.Numeric(3, 2))
+    kafedra_id       = db.Column(db.Integer, db.ForeignKey("kafedras.id"))
     internship_start = db.Column(db.Date)
     internship_end   = db.Column(db.Date)
     organization_id  = db.Column(db.Integer, db.ForeignKey("organizations.id"))
@@ -82,6 +121,13 @@ class Student(db.Model):
     curator_id       = db.Column(db.Integer, db.ForeignKey("curators.id"))
 
     tasks = db.relationship("Task", backref="student", lazy="dynamic")
+
+    @property
+    def full_name(self):
+        parts = [self.last_name, self.first_name]
+        if self.middle_name:
+            parts.append(self.middle_name)
+        return " ".join(parts)
 
     @property
     def tasks_done(self):

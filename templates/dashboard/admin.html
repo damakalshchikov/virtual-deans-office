@@ -9,41 +9,38 @@
   </a>
 </div>
 
-{% set role_labels = {'student': 'Студент', 'curator': 'Куратор',
-                       'teacher': 'Преподаватель', 'admin': 'Администратор'} %}
+{% set role_labels = {"student": "Студент", "curator": "Куратор",
+                       "teacher": "Преподаватель", "admin": "Администратор"} %}
 
 <div class="card">
   <div class="card-body p-0">
-    <table class="table table-hover mb-0">
+    <table class="table table-hover align-middle mb-0">
       <thead class="table-light">
         <tr>
-          <th>ID</th>
+          <th class="text-center" style="width:50px;">№</th>
           <th>Логин</th>
           <th>Роль</th>
           <th>Статус</th>
-          <th class="text-center" style="min-width:200px;">Действия</th>
+          <th>ФИО</th>
+          <th>Группа</th>
+          <th>Кафедра</th>
+          <th class="text-center" style="width:220px;">Действия</th>
         </tr>
       </thead>
       <tbody>
         {% for u in users %}
         <tr class="{{ 'table-secondary text-muted' if not u.is_active }}">
-          <td>{{ u.id }}</td>
+          <td class="text-center text-muted small">{{ loop.index }}</td>
           <td>{{ u.login }}</td>
           <td>
-            <form method="post"
-                  action="{{ url_for('dashboard.admin_user_role', user_id=u.id) }}"
-                  class="d-flex gap-1">
-              <select name="role" class="form-select form-select-sm" style="width:auto;">
-                {% for r in ['student', 'curator', 'teacher', 'admin'] %}
-                  <option value="{{ r }}" {{ 'selected' if u.role == r }}>
-                    {{ role_labels[r] }}
-                  </option>
-                {% endfor %}
-              </select>
-              <button type="submit" class="btn btn-sm btn-outline-primary">
-                <i class="fa-solid fa-check"></i>
-              </button>
-            </form>
+            <span class="badge rounded-pill
+              {% if u.role == 'admin' %}bg-danger
+              {% elif u.role == 'teacher' %}bg-primary
+              {% elif u.role == 'curator' %}bg-warning text-dark
+              {% else %}bg-info text-dark
+              {% endif %}">
+              {{ role_labels.get(u.role, u.role) }}
+            </span>
           </td>
           <td>
             {% if u.is_active %}
@@ -52,21 +49,49 @@
               <span class="badge bg-secondary">Деактивирован</span>
             {% endif %}
           </td>
+          <td>
+            {% if u.profile %}
+              {{ u.profile.full_name }}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.student and u.student.group_name %}
+              {{ u.student.group_name }}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.profile and u.profile.kafedra %}
+              {{ u.profile.kafedra.name }}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
           <td class="text-center">
+            <a href="{{ url_for('dashboard.admin_user_edit', user_id=u.id) }}"
+               class="btn btn-sm btn-outline-primary">
+              <i class="fa-solid fa-pen-to-square me-1"></i>Редактировать
+            </a>
             <form method="post"
                   action="{{ url_for('dashboard.admin_user_toggle', user_id=u.id) }}"
-                  class="d-inline">
+                  class="d-inline ms-1">
               {% if u.id == current_user.id %}
-                <button type="submit" class="btn btn-sm btn-outline-secondary" disabled title="Нельзя изменить собственную учётную запись">
-                  <i class="fa-solid fa-lock me-1"></i>Текущий
+                <button class="btn btn-sm btn-outline-secondary" disabled
+                        title="Нельзя изменить собственную учётную запись">
+                  <i class="fa-solid fa-lock"></i>
                 </button>
               {% elif u.is_active %}
-                <button type="submit" class="btn btn-sm btn-outline-danger">
-                  <i class="fa-solid fa-ban me-1"></i>Деактивировать
+                <button type="submit" class="btn btn-sm btn-outline-danger"
+                        title="Деактивировать">
+                  <i class="fa-solid fa-ban"></i>
                 </button>
               {% else %}
-                <button type="submit" class="btn btn-sm btn-outline-success">
-                  <i class="fa-solid fa-check me-1"></i>Активировать
+                <button type="submit" class="btn btn-sm btn-outline-success"
+                        title="Активировать">
+                  <i class="fa-solid fa-check"></i>
                 </button>
               {% endif %}
             </form>

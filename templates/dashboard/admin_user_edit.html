@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block title %}Редактирование — {{ user.login }}{% endblock %}
+
+{% block content %}
+{% set role_labels = {"student": "Студент", "curator": "Куратор",
+                       "teacher": "Преподаватель", "admin": "Администратор"} %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{{ url_for('dashboard.admin_users') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="fa-solid fa-arrow-left"></i>
+  </a>
+  <h3 class="mb-0">
+    <i class="fa-solid fa-pen-to-square text-primary me-2"></i>
+    Редактирование: <strong>{{ user.login }}</strong>
+    <span class="badge bg-secondary ms-1" style="font-size:.6em; vertical-align:middle;">
+      {{ role_labels.get(user.role, user.role) }}
+    </span>
+  </h3>
+</div>
+
+<form method="post">
+<div class="row g-4">
+
+  {# ── Учётная запись ── #}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-secondary text-white">
+        <i class="fa-solid fa-key me-2"></i>Учётная запись
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Логин <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="login" required
+                 value="{{ user.login }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Новый пароль</label>
+          <input type="password" class="form-control" name="password"
+                 placeholder="Оставьте пустым, чтобы не менять">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Роль</label>
+          <select class="form-select" name="role">
+            {% for r, label in role_labels.items() %}
+              <option value="{{ r }}" {{ "selected" if user.role == r }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Профиль студента ── #}
+  {% if user.role == "student" %}
+  {% set p = user.student %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <i class="fa-solid fa-graduation-cap me-2"></i>Профиль студента
+      </div>
+      <div class="card-body row g-3">
+
+        <div class="col-md-4">
+          <label class="form-label">Фамилия <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="last_name" required
+                 value="{{ p.last_name if p else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Имя <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="first_name" required
+                 value="{{ p.first_name if p else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Отчество</label>
+          <input type="text" class="form-control" name="middle_name"
+                 value="{{ p.middle_name if p and p.middle_name else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Группа <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="group_name" required
+                 value="{{ p.group_name if p else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Средний балл</label>
+          <input type="number" class="form-control" name="average_grade"
+                 step="0.01" min="0" max="5"
+                 value="{{ p.average_grade if p and p.average_grade is not none else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Направление подготовки</label>
+          <input type="text" class="form-control" name="specialty"
+                 value="{{ p.specialty if p and p.specialty else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" name="email"
+                 value="{{ p.email if p and p.email else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Кафедра</label>
+          <select class="form-select" name="kafedra_id">
+            <option value="">— не выбрано —</option>
+            {% for k in kafedras %}
+              <option value="{{ k.id }}"
+                {{ 'selected' if p and p.kafedra_id == k.id }}>
+                {{ k.name }} ({{ k.faculty }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Организация практики</label>
+          <select class="form-select" name="organization_id">
+            <option value="">— не выбрано —</option>
+            {% for o in organizations %}
+              <option value="{{ o.id }}"
+                {{ 'selected' if p and p.organization_id == o.id }}>
+                {{ o.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Начало практики</label>
+          <input type="date" class="form-control" name="internship_start"
+                 value="{{ p.internship_start.isoformat() if p and p.internship_start else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Конец практики</label>
+          <input type="date" class="form-control" name="internship_end"
+                 value="{{ p.internship_end.isoformat() if p and p.internship_end else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Руководитель от кафедры</label>
+          <select class="form-select" name="teacher_id">
+            <option value="">— не выбрано —</option>
+            {% for t in teachers %}
+              <option value="{{ t.id }}"
+                {{ 'selected' if p and p.teacher_id == t.id }}>
+                {{ t.full_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Куратор от организации</label>
+          <select class="form-select" name="curator_id">
+            <option value="">— не выбрано —</option>
+            {% for c in curators %}
+              <option value="{{ c.id }}"
+                {{ 'selected' if p and p.curator_id == c.id }}>
+                {{ c.full_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Профиль преподавателя ── #}
+  {% if user.role == "teacher" %}
+  {% set p = user.teacher %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <i class="fa-solid fa-chalkboard-user me-2"></i>Профиль преподавателя
+      </div>
+      <div class="card-body row g-3">
+
+        <div class="col-md-4">
+          <label class="form-label">Фамилия <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="last_name" required
+                 value="{{ p.last_name if p else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Имя <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="first_name" required
+                 value="{{ p.first_name if p else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Отчество</label>
+          <input type="text" class="form-control" name="middle_name"
+                 value="{{ p.middle_name if p and p.middle_name else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Должность</label>
+          <input type="text" class="form-control" name="position"
+                 value="{{ p.position if p and p.position else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" name="email"
+                 value="{{ p.email if p and p.email else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Кафедра</label>
+          <select class="form-select" name="kafedra_id">
+            <option value="">— не выбрано —</option>
+            {% for k in kafedras %}
+              <option value="{{ k.id }}"
+                {{ 'selected' if p and p.kafedra_id == k.id }}>
+                {{ k.name }} ({{ k.faculty }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Профиль куратора ── #}
+  {% if user.role == "curator" %}
+  {% set p = user.curator %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <i class="fa-solid fa-user-tie me-2"></i>Профиль куратора
+      </div>
+      <div class="card-body row g-3">
+
+        <div class="col-md-4">
+          <label class="form-label">Фамилия <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="last_name" required
+                 value="{{ p.last_name if p else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Имя <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="first_name" required
+                 value="{{ p.first_name if p else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Отчество</label>
+          <input type="text" class="form-control" name="middle_name"
+                 value="{{ p.middle_name if p and p.middle_name else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Должность</label>
+          <input type="text" class="form-control" name="position"
+                 value="{{ p.position if p and p.position else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" name="email"
+                 value="{{ p.email if p and p.email else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Организация</label>
+          <select class="form-select" name="organization_id">
+            <option value="">— не выбрано —</option>
+            {% for o in organizations %}
+              <option value="{{ o.id }}"
+                {{ 'selected' if p and p.organization_id == o.id }}>
+                {{ o.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Кнопки ── #}
+  <div class="col-12 d-flex gap-2">
+    <button type="submit" class="btn btn-primary">
+      <i class="fa-solid fa-floppy-disk me-1"></i>Сохранить
+    </button>
+    <a href="{{ url_for('dashboard.admin_users') }}" class="btn btn-outline-secondary">
+      Отмена
+    </a>
+  </div>
+
+</div>
+</form>
+{% endblock %}
