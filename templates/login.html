@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Вход — Виртуальный деканат{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-sm-10 col-md-6 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h4 class="card-title text-center mb-4">
+          <i class="fa-solid fa-university text-primary me-2"></i>Вход в систему
+        </h4>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="post">
+          <div class="mb-3">
+            <label for="login" class="form-label">Логин</label>
+            <input type="text" class="form-control" id="login" name="login"
+                   autocomplete="username" required autofocus>
+          </div>
+          <div class="mb-4">
+            <label for="password" class="form-label">Пароль</label>
+            <input type="password" class="form-control" id="password" name="password"
+                   autocomplete="current-password" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fa-solid fa-right-to-bracket me-1"></i>Войти
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

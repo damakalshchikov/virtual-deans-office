@@ -1,0 +1,101 @@
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+
+db = SQLAlchemy()
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+
+    id        = db.Column(db.Integer, primary_key=True)
+    login     = db.Column(db.String(64), unique=True, nullable=False)
+    password  = db.Column(db.String(256), nullable=False)
+    role      = db.Column(db.String(32), nullable=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+
+    student  = db.relationship("Student", backref="user", uselist=False)
+    teacher  = db.relationship("Teacher", backref="user", uselist=False)
+    curator  = db.relationship("Curator", backref="user", uselist=False)
+
+    def get_id(self):
+        return str(self.id)
+
+    @property
+    def active(self):
+        return self.is_active
+
+    @property
+    def profile(self):
+        if self.role == "student":
+            return self.student
+        if self.role == "teacher":
+            return self.teacher
+        if self.role == "curator":
+            return self.curator
+        return None
+
+
+class Organization(db.Model):
+    __tablename__ = "organizations"
+
+    id   = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256), nullable=False)
+
+    students = db.relationship("Student", backref="organization")
+    curators = db.relationship("Curator", backref="organization")
+
+
+class Teacher(db.Model):
+    __tablename__ = "teachers"
+
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
+    full_name  = db.Column(db.String(128), nullable=False)
+    department = db.Column(db.String(128), nullable=False)
+
+    students = db.relationship("Student", backref="teacher")
+
+
+class Curator(db.Model):
+    __tablename__ = "curators"
+
+    id              = db.Column(db.Integer, primary_key=True)
+    user_id         = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
+    full_name       = db.Column(db.String(128), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey("organizations.id"))
+
+    students = db.relationship("Student", backref="curator")
+
+
+class Student(db.Model):
+    __tablename__ = "students"
+
+    id               = db.Column(db.Integer, primary_key=True)
+    user_id          = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
+    full_name        = db.Column(db.String(128), nullable=False)
+    group_name       = db.Column(db.String(64), nullable=False)
+    specialty        = db.Column(db.String(256), nullable=False)
+    internship_start = db.Column(db.Date)
+    internship_end   = db.Column(db.Date)
+    organization_id  = db.Column(db.Integer, db.ForeignKey("organizations.id"))
+    teacher_id       = db.Column(db.Integer, db.ForeignKey("teachers.id"))
+    curator_id       = db.Column(db.Integer, db.ForeignKey("curators.id"))
+
+    tasks = db.relationship("Task", backref="student", lazy="dynamic")
+
+    @property
+    def tasks_done(self):
+        return self.tasks.filter_by(status="done").count()
+
+    @property
+    def tasks_total(self):
+        return self.tasks.count()
+
+
+class Task(db.Model):
+    __tablename__ = "tasks"
+
+    id         = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey("students.id"))
+    title      = db.Column(db.String(256), nullable=False)
+    status     = db.Column(db.String(32), nullable=False, default="pending")
