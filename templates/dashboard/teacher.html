@@ -17,7 +17,7 @@
       <dt class="col-sm-4">ФИО</dt>
       <dd class="col-sm-8">{{ teacher.full_name }}</dd>
       <dt class="col-sm-4">Кафедра</dt>
-      <dd class="col-sm-8">{{ teacher.department }}</dd>
+      <dd class="col-sm-8">{{ teacher.kafedra.name if teacher.kafedra else '—' }}</dd>
     </dl>
   </div>
 </div>
