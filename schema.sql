@@ -64,3 +64,18 @@ CREATE TABLE IF NOT EXISTS tasks (
     title      VARCHAR(256) NOT NULL,
     status     VARCHAR(32) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'done'))
 );
+
+-- Справочник всех прав системы
+CREATE TABLE IF NOT EXISTS permissions (
+    id          SERIAL PRIMARY KEY,
+    code        VARCHAR(64) NOT NULL UNIQUE,
+    description VARCHAR(256) NOT NULL,
+    section     VARCHAR(64) NOT NULL  -- для группировки на дашборде: 'Организация и планирование практики', 'Распределение студентов на практику', 'Выполнение заданий и прохождение практики', 'Отчётность и аттестация по практике', 'Администрирование'
+);
+
+-- Какие права назначены какой роли
+CREATE TABLE IF NOT EXISTS role_permissions (
+    role    VARCHAR(32) NOT NULL CHECK (role IN ('student','curator','teacher','admin')),
+    perm_id INTEGER     NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+    PRIMARY KEY (role, perm_id)
+);

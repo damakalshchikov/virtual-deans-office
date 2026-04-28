@@ -23,6 +23,10 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
 
+    # Регистрируем has_permission как глобальную функцию в Jinja2
+    from access.decorators import has_permission
+    app.jinja_env.globals['has_permission'] = has_permission
+
     @app.errorhandler(403)
     def forbidden(e):
         return render_template("403.html"), 403

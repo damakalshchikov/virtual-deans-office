@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, abort
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
-from models import db, User, Student, Teacher, Curator, Organization, Kafedra
+from models import db, User, Student, Teacher, Curator, Organization, Kafedra, Permission, RolePermission
 
 from access.decorators import requires_role
 
@@ -198,4 +198,54 @@ def admin_user_edit(user_id):
         organizations=organizations,
         teachers=teachers,
         curators=curators,
+    )
+
+
+# Admin: Управление правами доступа
+
+@bp.route("/admin/permissions", methods=["GET", "POST"])
+@login_required
+@requires_role("admin")
+def admin_permissions():
+    """Управление правами доступа по ролям."""
+    roles = ["student", "curator", "teacher", "admin"]
+
+    if request.method == "POST":
+        # Удаляем все текущие права для ролей (кроме admin)
+        RolePermission.query.filter(RolePermission.role != "admin").delete()
+        
+        for role in roles:
+            if role == "admin":
+                # Администратор всегда имеет все права (они не хранятся в БД)
+                continue
+            for perm in Permission.query.all():
+                key = f"{role}_{perm.id}"
+                if request.form.get(key):
+                    db.session.add(RolePermission(role=role, perm_id=perm.id))
+        
+        db.session.commit()
+        flash("Права доступа обновлены", "success")
+        return redirect(url_for("dashboard.admin_permissions"))
+
+    # Строим словарь: {section: [permission, ...]}
+    permissions = Permission.query.order_by(Permission.section, Permission.id).all()
+    sections = {}
+    for p in permissions:
+        sections.setdefault(p.section, []).append(p)
+
+    # Текущие назначения: set of (role, perm_id)
+    assigned = {
+        (rp.role, rp.perm_id)
+        for rp in RolePermission.query.all()
+    }
+    
+    # Все права у администратора
+    for perm in permissions:
+        assigned.add(("admin", perm.id))
+
+    return render_template(
+        "dashboard/admin_permissions.html",
+        roles=roles,
+        sections=sections,
+        assigned=assigned,
     )

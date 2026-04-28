@@ -145,3 +145,22 @@ class Task(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey("students.id"))
     title      = db.Column(db.String(256), nullable=False)
     status     = db.Column(db.String(32), nullable=False, default="pending")
+
+
+class Permission(db.Model):
+    __tablename__ = "permissions"
+
+    id          = db.Column(db.Integer, primary_key=True)
+    code        = db.Column(db.String(64), unique=True, nullable=False)
+    description = db.Column(db.String(256), nullable=False)
+    section     = db.Column(db.String(64), nullable=False)
+
+    role_permissions = db.relationship("RolePermission", backref="permission",
+                                        cascade="all, delete-orphan")
+
+
+class RolePermission(db.Model):
+    __tablename__ = "role_permissions"
+
+    role    = db.Column(db.String(32), primary_key=True)
+    perm_id = db.Column(db.Integer, db.ForeignKey("permissions.id"), primary_key=True)

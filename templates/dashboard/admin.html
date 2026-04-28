@@ -4,9 +4,14 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h3 class="mb-0"><i class="fa-solid fa-users-gear text-primary me-2"></i>Управление пользователями</h3>
-  <a href="{{ url_for('dashboard.admin_user_create') }}" class="btn btn-success">
-    <i class="fa-solid fa-user-plus me-1"></i>Создать пользователя
-  </a>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('dashboard.admin_permissions') }}" class="btn btn-outline-primary">
+      <i class="fa-solid fa-shield-halved me-1"></i>Права доступа
+    </a>
+    <a href="{{ url_for('dashboard.admin_user_create') }}" class="btn btn-success">
+      <i class="fa-solid fa-user-plus me-1"></i>Создать пользователя
+    </a>
+  </div>
 </div>
 
 {% set role_labels = {"student": "Студент", "curator": "Куратор",
