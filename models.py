@@ -196,12 +196,14 @@ class VacancyRequirement(db.Model):
 
 class Application(db.Model):
     __tablename__ = "applications"
-    id         = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey("students.id"), nullable=False)
-    vacancy_id = db.Column(db.Integer, db.ForeignKey("vacancies.id"), nullable=False)
-    status     = db.Column(db.String(32), default="pending")
-    match_pct  = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id              = db.Column(db.Integer, primary_key=True)
+    student_id      = db.Column(db.Integer, db.ForeignKey("students.id"), nullable=False)
+    vacancy_id      = db.Column(db.Integer, db.ForeignKey("vacancies.id"), nullable=False)
+    status          = db.Column(db.String(32), default="pending")
+    match_pct       = db.Column(db.Integer, default=0)
+    student_comment = db.Column(db.Text)
+    curator_comment = db.Column(db.Text)
+    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
     __table_args__ = (db.UniqueConstraint("student_id", "vacancy_id"),)
 
 

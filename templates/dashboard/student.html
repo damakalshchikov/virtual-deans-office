@@ -21,6 +21,9 @@
     <div class="card h-100"><div class="card-header bg-primary text-white"><i class="fa-solid fa-building me-2"></i>Практика</div>
       <div class="card-body">
         <dl class="row mb-0">
+          {% if accepted_practice %}
+          <dt class="col-sm-5">Практика</dt><dd class="col-sm-7">{{ accepted_practice.name }}</dd>
+          {% endif %}
           <dt class="col-sm-5">Организация</dt><dd class="col-sm-7">{{ student.organization.name if student.organization else '—' }}</dd>
           <dt class="col-sm-5">Период</dt><dd class="col-sm-7">{% if student.internship_start %}{{ student.internship_start.strftime('%d.%m.%Y') }} — {{ student.internship_end.strftime('%d.%m.%Y') }}{% else %}—{% endif %}</dd>
           <dt class="col-sm-5">Руководитель</dt><dd class="col-sm-7">{{ student.teacher.full_name if student.teacher else '—' }}</dd>

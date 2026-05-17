@@ -3,7 +3,8 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from models import (db, User, Student, Teacher, Curator, Organization, Kafedra,
-                     Permission, RolePermission, Kompetenciya, StudentKompetenciya)
+                     Permission, RolePermission, Kompetenciya, StudentKompetenciya,
+                     Distribution)
 from access.decorators import requires_role
 
 bp = Blueprint("dashboard", __name__)
@@ -19,7 +20,13 @@ def root():
 def index():
     role = current_user.role
     if role == "student":
-        return render_template("dashboard/student.html", student=current_user.student)
+        student = current_user.student
+        accepted_practice = None
+        if student:
+            dist = Distribution.query.filter_by(student_id=student.id).order_by(Distribution.created_at.desc()).first()
+            if dist and dist.vacancy and dist.vacancy.practice:
+                accepted_practice = dist.vacancy.practice
+        return render_template("dashboard/student.html", student=student, accepted_practice=accepted_practice)
     if role == "curator":
         curator = current_user.curator
         students = curator.students if curator else []
