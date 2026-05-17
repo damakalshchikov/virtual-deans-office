@@ -230,6 +230,8 @@ class Task(db.Model):
     due_date    = db.Column(db.Date)
     executions = db.relationship("Execution", backref="task", cascade="all, delete-orphan",
                                   order_by="Execution.submitted_at.desc()")
+    comments   = db.relationship("TaskComment", backref="task", cascade="all, delete-orphan",
+                                  order_by="TaskComment.created_at")
 
 
 class Execution(db.Model):
@@ -301,6 +303,18 @@ class Attestation(db.Model):
     created_at      = db.Column(db.DateTime, default=datetime.utcnow)
     student  = db.relationship("Student", backref="attestations")
     practice = db.relationship("Practice", backref="attestations")
+
+
+class TaskComment(db.Model):
+    __tablename__ = "task_comments"
+    id         = db.Column(db.Integer, primary_key=True)
+    task_id    = db.Column(db.Integer, db.ForeignKey("tasks.id"), nullable=False)
+    user_id    = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    content    = db.Column(db.Text)
+    file_path  = db.Column(db.String(512))
+    file_name  = db.Column(db.String(256))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship("User", backref="task_comments")
 
 
 class Notification(db.Model):

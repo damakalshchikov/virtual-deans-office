@@ -1,14 +1,30 @@
 {% extends 'base.html' %}
-{% block title %}Создать задание{% endblock %}
+{% block title %}{% if task %}Редактировать задание{% else %}Создать задание{% endif %}{% endblock %}
 {% block content %}
-<h3 class="mb-4">Создать задание</h3>
+<h3 class="mb-4">{% if task %}Редактировать задание{% else %}Создать задание{% endif %}</h3>
 <div class="card"><div class="card-body">
 <form method="post"><div class="row g-3">
-  <div class="col-12"><label class="form-label">Название</label><input type="text" class="form-control" name="title" required></div>
-  <div class="col-md-6"><label class="form-label">Студент</label><select class="form-select" name="student_id"><option value="">—</option>{% for s in students %}<option value="{{ s.id }}">{{ s.full_name }} ({{ s.group_name }})</option>{% endfor %}</select></div>
-  <div class="col-md-3"><label class="form-label">Практика</label><select class="form-select" name="practice_id"><option value="">—</option>{% for p in practices %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}</select></div>
-  <div class="col-md-3"><label class="form-label">Срок</label><input type="date" class="form-control" name="due_date"></div>
-  <div class="col-12"><label class="form-label">Описание</label><textarea class="form-control" name="description" rows="3"></textarea></div>
-  <div class="col-12"><button type="submit" class="btn btn-primary">Создать</button> <a href="{{ url_for('execution.index') }}" class="btn btn-outline-secondary">Отмена</a></div>
+  <div class="col-12"><label class="form-label">Название</label>
+    <input type="text" class="form-control" name="title" value="{{ task.title if task else '' }}" required></div>
+  {% if not task %}
+  <div class="col-md-6"><label class="form-label">Студент</label>
+    <select class="form-select" name="student_id">
+      <option value="">—</option>
+      {% for s in students %}<option value="{{ s.id }}">{{ s.full_name }} ({{ s.group_name }})</option>{% endfor %}
+    </select></div>
+  <div class="col-md-3"><label class="form-label">Практика</label>
+    <select class="form-select" name="practice_id">
+      <option value="">—</option>
+      {% for p in practices %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+    </select></div>
+  {% endif %}
+  <div class="col-md-3"><label class="form-label">Срок</label>
+    <input type="date" class="form-control" name="due_date" value="{{ task.due_date.isoformat() if task and task.due_date else '' }}"></div>
+  <div class="col-12"><label class="form-label">Описание</label>
+    <textarea class="form-control" name="description" rows="4">{{ task.description if task else '' }}</textarea></div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">{% if task %}Сохранить{% else %}Создать{% endif %}</button>
+    <a href="{{ url_for('execution.task_view', tid=task.id) if task else url_for('execution.index') }}" class="btn btn-outline-secondary">Отмена</a>
+  </div>
 </div></form></div></div>
 {% endblock %}

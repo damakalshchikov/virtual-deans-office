@@ -1,34 +1,114 @@
 {% extends 'base.html' %}
 {% block title %}{{ task.title }}{% endblock %}
 {% block content %}
-<a href="{{ url_for('execution.index') }}" class="btn btn-outline-secondary btn-sm mb-3"><i class="fa-solid fa-arrow-left me-1"></i>Назад</a>
+<div class="d-flex gap-2 mb-3">
+  <a href="{{ url_for('execution.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left me-1"></i>Назад</a>
+  {% if can_manage %}
+    <a href="{{ url_for('execution.task_edit', tid=task.id) }}" class="btn btn-outline-primary btn-sm ms-auto"><i class="fa-solid fa-pen me-1"></i>Редактировать</a>
+  {% endif %}
+</div>
+
 <div class="card mb-4"><div class="card-body">
   <h4>{{ task.title }}</h4>
-  <p><strong>Студент:</strong> {{ task.student.full_name if task.student else '—' }}</p>
-  <p><strong>Срок:</strong> {{ task.due_date.strftime('%d.%m.%Y') if task.due_date else '—' }}</p>
-  <p><strong>Статус:</strong>
+  <p class="mb-1"><strong>Студент:</strong> {{ task.student.full_name if task.student else '—' }}</p>
+  <p class="mb-1"><strong>Срок:</strong> {{ task.due_date.strftime('%d.%m.%Y') if task.due_date else '—' }}</p>
+  <p class="mb-2"><strong>Статус:</strong>
     {% if task.status == 'accepted' %}<span class="badge bg-success">Принято</span>
     {% elif task.status == 'submitted' %}<span class="badge bg-info">На проверке</span>
     {% elif task.status == 'in_progress' %}<span class="badge bg-warning text-dark">В процессе</span>
     {% elif task.status == 'rejected' %}<span class="badge bg-danger">Отклонено</span>
-    {% else %}<span class="badge bg-secondary">Ожидает</span>{% endif %}</p>
-  {% if task.description %}<p>{{ task.description }}</p>{% endif %}
+    {% else %}<span class="badge bg-secondary">Ожидает</span>{% endif %}
+  </p>
+  {% if task.description %}<p class="mb-3">{{ task.description }}</p>{% endif %}
+
   {% if current_user.role == 'student' %}
     <div class="d-flex gap-2">
-      {% if task.status in ('pending','rejected') %}<form method="post" action="{{ url_for('execution.change_status', tid=task.id) }}"><input type="hidden" name="status" value="in_progress"><button class="btn btn-warning btn-sm">Начать выполнение</button></form>{% endif %}
-      {% if task.status in ('in_progress','rejected') %}<a href="{{ url_for('execution.submit_result', tid=task.id) }}" class="btn btn-primary btn-sm">Загрузить результат</a>{% endif %}
+      {% if task.status in ('pending','rejected') %}
+        <form method="post" action="{{ url_for('execution.change_status', tid=task.id) }}">
+          <input type="hidden" name="status" value="in_progress">
+          <button class="btn btn-warning btn-sm">Начать выполнение</button>
+        </form>
+      {% endif %}
+      {% if task.status in ('in_progress','rejected') %}
+        <a href="{{ url_for('execution.submit_result', tid=task.id) }}" class="btn btn-primary btn-sm">Загрузить результат</a>
+      {% endif %}
     </div>
   {% endif %}
+
+  {% if can_manage %}
+    <form method="post" action="{{ url_for('execution.change_status', tid=task.id) }}" class="d-flex gap-2 align-items-center mt-3">
+      <select name="status" class="form-select form-select-sm" style="width:auto">
+        {% for s, label in [('pending','Ожидает'),('in_progress','В процессе'),('submitted','На проверке'),('accepted','Принято'),('rejected','Отклонено')] %}
+          <option value="{{ s }}" {% if task.status == s %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm btn-outline-secondary">Изменить статус</button>
+    </form>
+  {% endif %}
 </div></div>
+
+<div class="card mb-4">
+  <div class="card-header"><i class="fa-solid fa-comments me-1"></i>Комментарии и файлы</div>
+  <div class="card-body">
+    {% if task.comments %}
+      {% for c in task.comments %}
+      <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
+        <div class="flex-shrink-0">
+          <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;font-size:.85rem">
+            {{ (c.user.profile.full_name if c.user.profile else c.user.login)[0].upper() }}
+          </div>
+        </div>
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between">
+            <strong>{{ c.user.profile.full_name if c.user.profile else c.user.login }}</strong>
+            <small class="text-muted">{{ c.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+          </div>
+          {% if c.content %}<p class="mb-1 mt-1">{{ c.content }}</p>{% endif %}
+          {% if c.file_path %}
+            <a href="{{ url_for('static', filename='uploads/task_files/' + c.file_path) }}"
+               class="btn btn-sm btn-outline-secondary mt-1" download="{{ c.file_name }}">
+              <i class="fa-solid fa-paperclip me-1"></i>{{ c.file_name }}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted mb-3">Комментариев пока нет.</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('execution.add_comment', tid=task.id) }}" enctype="multipart/form-data">
+      <div class="mb-2">
+        <textarea class="form-control" name="content" rows="2" placeholder="Написать комментарий..."></textarea>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <input type="file" class="form-control form-control-sm" name="file" style="max-width:280px">
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-paper-plane me-1"></i>Отправить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% if task.executions %}
-<h5>История сдач</h5>
-{% for e in task.executions %}
-<div class="card mb-2"><div class="card-body">
-  <small class="text-muted">{{ e.submitted_at.strftime('%d.%m.%Y %H:%M') }}</small>
-  <span class="badge {% if e.status == 'accepted' %}bg-success{% elif e.status == 'rejected' %}bg-danger{% else %}bg-info{% endif %} ms-2">{{ {'accepted':'Принято','rejected':'Отклонено','submitted':'На проверке'}[e.status] }}</span>
-  {% if e.content %}<p class="mt-2 mb-1">{{ e.content }}</p>{% endif %}
-  {% if e.comment %}<p class="text-muted mb-0"><em>Комментарий: {{ e.comment }}</em></p>{% endif %}
-  {% if current_user.role in ('curator','teacher','admin') and e.status == 'submitted' %}<a href="{{ url_for('execution.review', tid=task.id, eid=e.id) }}" class="btn btn-sm btn-outline-primary mt-2">Проверить</a>{% endif %}
-</div></div>{% endfor %}
+<div class="card">
+  <div class="card-header">История сдач</div>
+  <div class="card-body p-0">
+    {% for e in task.executions %}
+    <div class="p-3 border-bottom">
+      <div class="d-flex justify-content-between">
+        <small class="text-muted">{{ e.submitted_at.strftime('%d.%m.%Y %H:%M') }}</small>
+        <span class="badge {% if e.status == 'accepted' %}bg-success{% elif e.status == 'rejected' %}bg-danger{% else %}bg-info{% endif %}">
+          {{ {'accepted':'Принято','rejected':'Отклонено','submitted':'На проверке'}[e.status] }}
+        </span>
+      </div>
+      {% if e.content %}<p class="mt-2 mb-1">{{ e.content }}</p>{% endif %}
+      {% if e.comment %}<p class="text-muted mb-0 small"><em>Комментарий проверяющего: {{ e.comment }}</em></p>{% endif %}
+      {% if can_manage and e.status == 'submitted' %}
+        <a href="{{ url_for('execution.review', tid=task.id, eid=e.id) }}" class="btn btn-sm btn-outline-primary mt-2">Проверить</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
 {% endif %}
 {% endblock %}
