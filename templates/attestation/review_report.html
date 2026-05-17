@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Проверка {{ 'отчёта' if report.type == 'report' else 'дневника' }}{% endblock %}
+{% block content %}
+<h3 class="mb-4">Проверка — {{ report.student.full_name }}</h3>
+<div class="card mb-3"><div class="card-body"><p>{{ report.content }}</p></div></div>
+<div class="card"><div class="card-body"><form method="post">
+  <div class="mb-3"><label class="form-label">Комментарий</label><textarea class="form-control" name="comment" rows="3"></textarea></div>
+  <button type="submit" name="action" value="approve" class="btn btn-success me-2">Одобрить</button>
+  <button type="submit" name="action" value="reject" class="btn btn-danger">Вернуть на доработку</button>
+</form></div></div>
+{% endblock %}

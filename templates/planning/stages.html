@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Этапы — {{ practice.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="mb-0"><i class="fa-solid fa-layer-group text-primary me-2"></i>{{ practice.name }} — Этапы</h3>
+  <div>{% if current_user.role in ('teacher','admin') %}<a href="{{ url_for('planning.stage_add', pid=practice.id) }}" class="btn btn-success btn-sm"><i class="fa-solid fa-plus me-1"></i>Добавить этап</a>{% endif %}
+  <a href="{{ url_for('planning.index') }}" class="btn btn-outline-secondary btn-sm ms-1">Назад</a></div>
+</div>
+{% if practice.stages %}
+<div class="card"><div class="card-body p-0">
+  <table class="table table-hover mb-0"><thead class="table-light"><tr><th>#</th><th>Название</th><th>Период</th><th>Действия</th></tr></thead>
+    <tbody>{% for s in practice.stages %}<tr><td>{{ s.order }}</td><td>{{ s.name }}</td><td>{{ s.start_date.strftime('%d.%m.%Y') }} — {{ s.end_date.strftime('%d.%m.%Y') }}</td>
+      <td>{% if current_user.role in ('teacher','admin') %}<a href="{{ url_for('planning.stage_edit', pid=practice.id, sid=s.id) }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
+        <form method="post" action="{{ url_for('planning.stage_delete', pid=practice.id, sid=s.id) }}" class="d-inline"><button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></form>{% endif %}</td></tr>{% endfor %}</tbody></table>
+</div></div>
+{% else %}<div class="alert alert-info">Этапы ещё не добавлены.</div>{% endif %}
+{% endblock %}

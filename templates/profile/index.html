@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Мой профиль{% endblock %}
+{% block content %}
+<h3 class="mb-4"><i class="fa-solid fa-id-card text-primary me-2"></i>Мой профиль</h3>
+<div class="card"><div class="card-body">
+  {% set p = current_user.profile %}
+  <dl class="row mb-0">
+    <dt class="col-sm-4">Логин</dt><dd class="col-sm-8">{{ current_user.login }}</dd>
+    <dt class="col-sm-4">Роль</dt><dd class="col-sm-8">{{ {'student':'Студент','teacher':'Преподаватель','curator':'Куратор','admin':'Администратор'}[current_user.role] }}</dd>
+    {% if p %}
+    <dt class="col-sm-4">ФИО</dt><dd class="col-sm-8">{{ p.full_name }}</dd>
+    <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ p.email or '—' }}</dd>
+    {% endif %}
+  </dl>
+  <a href="{{ url_for('profile.edit') }}" class="btn btn-outline-primary mt-3"><i class="fa-solid fa-pen me-1"></i>Редактировать</a>
+</div></div>
+{% endblock %}

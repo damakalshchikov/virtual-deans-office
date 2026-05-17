@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Уведомления{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="mb-0"><i class="fa-solid fa-bell text-primary me-2"></i>Уведомления</h3>
+  {% if notes %}<form method="post" action="{{ url_for('profile.mark_all_read') }}"><button class="btn btn-outline-secondary btn-sm">Прочитать все</button></form>{% endif %}
+</div>
+{% if notes %}{% for n in notes %}
+<div class="card mb-2 {{ '' if n.is_read else 'border-primary' }}"><div class="card-body d-flex justify-content-between align-items-center py-2">
+  <div>{% if not n.is_read %}<span class="badge bg-primary me-2">Новое</span>{% endif %}{{ n.message }}<br><small class="text-muted">{{ n.created_at.strftime('%d.%m.%Y %H:%M') }}</small></div>
+  {% if not n.is_read %}<form method="post" action="{{ url_for('profile.mark_read', nid=n.id) }}"><button class="btn btn-sm btn-outline-primary">Прочитать</button></form>{% endif %}
+</div></div>{% endfor %}
+{% else %}<div class="alert alert-info">Нет уведомлений.</div>{% endif %}
+{% endblock %}

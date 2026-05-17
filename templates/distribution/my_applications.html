@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Мои заявки{% endblock %}
+{% block content %}
+<h3 class="mb-4"><i class="fa-solid fa-file-signature text-primary me-2"></i>Мои заявки</h3>
+{% if apps %}
+<div class="card"><div class="card-body p-0">
+  <table class="table table-hover mb-0 align-middle">
+    <thead class="table-light">
+      <tr><th>Вакансия</th><th>Организация</th><th>Совпадение</th><th>Статус</th><th>Комментарии</th><th>Дата</th><th></th></tr>
+    </thead>
+    <tbody>{% for a in apps %}<tr>
+      <td><a href="{{ url_for('distribution.vacancy_view', vid=a.vacancy_id) }}">{{ a.vacancy.title }}</a></td>
+      <td>{{ a.vacancy.organization.name if a.vacancy.organization else '—' }}</td>
+      <td>{{ a.match_pct }}%</td>
+      <td>
+        {% if a.status == 'approved' %}<span class="badge bg-success">Принята</span>
+        {% elif a.status == 'rejected' %}<span class="badge bg-danger">Отклонена</span>
+        {% elif a.status == 'interview' %}<span class="badge bg-info text-dark">Собеседование</span>
+        {% else %}<span class="badge bg-warning text-dark">Ожидает</span>{% endif %}
+      </td>
+      <td class="small">
+        {% if a.student_comment %}<div><span class="text-muted">Вы:</span> {{ a.student_comment }}</div>{% endif %}
+        {% if a.curator_comment %}<div><span class="text-muted">Куратор:</span> {{ a.curator_comment }}</div>{% endif %}
+        {% if not a.student_comment and not a.curator_comment %}—{% endif %}
+      </td>
+      <td>{{ a.created_at.strftime('%d.%m.%Y') }}</td>
+      <td>
+        {% if a.status in ('pending', 'interview') %}
+        <form method="post" action="{{ url_for('distribution.withdraw', app_id=a.id) }}"
+              onsubmit="return confirm('Отозвать заявку?')">
+          <button class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-xmark me-1"></i>Отозвать</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>{% endfor %}</tbody>
+  </table>
+</div></div>
+{% else %}<div class="alert alert-info">Вы ещё не подали ни одной заявки.</div>{% endif %}
+{% endblock %}

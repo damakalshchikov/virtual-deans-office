@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}{{ v.title }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3">
+  <a href="{{ url_for('distribution.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left me-1"></i>Назад</a>
+  {% if current_user.role == 'admin' or (current_user.role == 'curator' and current_user.curator and current_user.curator.organization_id == v.organization_id) %}
+    <a href="{{ url_for('distribution.vacancy_edit', vid=v.id) }}" class="btn btn-outline-primary btn-sm ms-auto"><i class="fa-solid fa-pen me-1"></i>Редактировать</a>
+    <form method="post" action="{{ url_for('distribution.vacancy_delete', vid=v.id) }}" onsubmit="return confirm('Удалить вакансию? Все заявки и распределения будут удалены.')">
+      <button class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash me-1"></i>Удалить</button>
+    </form>
+  {% endif %}
+</div>
+
+<div class="card mb-4"><div class="card-body">
+  <h4>{{ v.title }}</h4>
+  <p><strong>Организация:</strong> {{ v.organization.name if v.organization else '—' }}</p>
+  <p><strong>Мест:</strong> {{ v.slots }}</p>
+  {% if v.description %}<p>{{ v.description }}</p>{% endif %}
+  {% if v.requirements %}<h6>Требования по компетенциям:</h6><ul>{% for r in v.requirements %}<li>{{ r.kompetenciya.name }} — мин. уровень {{ r.min_level }}</li>{% endfor %}</ul>{% endif %}
+  {% if match_pct is not none %}<div class="alert alert-info">Ваш уровень совпадения: <strong>{{ match_pct }}%</strong></div>{% endif %}
+
+  {% if current_user.role == 'student' %}
+    {% if already_placed and not already_applied %}
+      <div class="alert alert-info">Вы уже приняты на практику и не можете подавать новые заявки.</div>
+    {% elif already_applied %}
+      <div class="alert alert-warning">Вы уже подали заявку на эту вакансию.</div>
+    {% elif v.status == 'open' %}
+      <form method="post" action="{{ url_for('distribution.apply', vid=v.id) }}">
+        <div class="mb-3">
+          <label class="form-label">Сопроводительный комментарий <span class="text-muted">(необязательно)</span></label>
+          <textarea class="form-control" name="student_comment" rows="3" placeholder="Расскажите, почему вас интересует эта вакансия..."></textarea>
+        </div>
+        <button class="btn btn-primary"><i class="fa-solid fa-paper-plane me-1"></i>Подать заявку</button>
+      </form>
+    {% endif %}
+  {% endif %}
+</div></div>
+
+{% if current_user.role in ('teacher','curator','admin') %}
+{% set can_act = current_user.role == 'admin' or (current_user.role == 'curator' and current_user.curator and current_user.curator.organization_id == v.organization_id) %}
+<div class="card">
+  <div class="card-header">Заявки</div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Студент</th><th>Группа</th><th>Совпадение</th><th>Статус</th><th>Комментарий студента</th>
+          {% if can_act %}<th></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in v.applications.all() %}
+        <tr>
+          <td>{{ a.student.full_name }}</td>
+          <td>{{ a.student.group_name }}</td>
+          <td>{{ a.match_pct }}%</td>
+          <td>
+            {% if a.status == 'approved' %}<span class="badge bg-success">Принята</span>
+            {% elif a.status == 'rejected' %}<span class="badge bg-danger">Отклонена</span>
+            {% elif a.status == 'interview' %}<span class="badge bg-info text-dark">Собеседование</span>
+            {% else %}<span class="badge bg-warning text-dark">Ожидает</span>{% endif %}
+            {% if a.curator_comment %}<div class="text-muted small mt-1">Куратор: {{ a.curator_comment }}</div>{% endif %}
+          </td>
+          <td class="text-muted small">{{ a.student_comment or '—' }}</td>
+          {% if can_act %}
+          <td>
+            {% if a.status not in ('approved', 'rejected') %}
+            <button class="btn btn-sm btn-outline-primary"
+                    data-bs-toggle="modal" data-bs-target="#actionModal"
+                    data-app-id="{{ a.id }}"
+                    data-student="{{ a.student.full_name }}"
+                    data-student-comment="{{ a.student_comment or '' }}"
+                    data-current-status="{{ a.status }}">
+              Рассмотреть
+            </button>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if can_act %}
+<div class="modal fade" id="actionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Рассмотреть заявку</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" id="actionForm">
+        <div class="modal-body">
+          <p class="mb-1"><strong>Студент:</strong> <span id="modalStudent"></span></p>
+          <div class="mb-3">
+            <strong>Комментарий студента:</strong>
+            <p id="modalStudentComment" class="text-muted mb-0"></p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Действие</label>
+            <div class="d-flex gap-2">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="action" id="actAccept" value="accept">
+                <label class="form-check-label text-success" for="actAccept">Принять</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="action" id="actInterview" value="interview">
+                <label class="form-check-label text-info" for="actInterview">Собеседование</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="action" id="actReject" value="reject">
+                <label class="form-check-label text-danger" for="actReject">Отклонить</label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Комментарий <span class="text-muted">(необязательно)</span></label>
+            <textarea class="form-control" name="curator_comment" rows="3" placeholder="Причина решения или детали собеседования..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('actionModal').addEventListener('show.bs.modal', function(e) {
+  const btn = e.relatedTarget;
+  document.getElementById('actionForm').action = '/distribution/application/' + btn.dataset.appId + '/action';
+  document.getElementById('modalStudent').textContent = btn.dataset.student;
+  const comment = btn.dataset.studentComment;
+  document.getElementById('modalStudentComment').textContent = comment || '—';
+  const status = btn.dataset.currentStatus;
+  if (status === 'interview') {
+    document.getElementById('actInterview').checked = true;
+  } else {
+    document.querySelectorAll('#actionModal input[name="action"]').forEach(r => r.checked = false);
+  }
+  document.querySelector('#actionModal textarea[name="curator_comment"]').value = '';
+});
+</script>
+{% endif %}
+{% endif %}
+{% endblock %}

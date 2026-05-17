@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{% if vacancy %}Редактировать вакансию{% else %}Создать вакансию{% endif %}{% endblock %}
+{% block content %}
+<h3 class="mb-4">{% if vacancy %}Редактировать вакансию{% else %}Создать вакансию{% endif %}</h3>
+<div class="card"><div class="card-body">
+<form method="post"><div class="row g-3">
+  <div class="col-md-8"><label class="form-label">Название</label><input type="text" class="form-control" name="title" value="{{ vacancy.title if vacancy else '' }}" required></div>
+  <div class="col-md-4"><label class="form-label">Кол-во мест</label><input type="number" class="form-control" name="slots" value="{{ vacancy.slots if vacancy else 1 }}" min="1"></div>
+  <div class="col-md-6"><label class="form-label">Организация</label>
+  {% if curator_org %}
+    <input type="text" class="form-control" value="{{ curator_org.name }}" disabled>
+  {% else %}
+    <select class="form-select" name="organization_id">
+      <option value="">—</option>
+      {% for o in orgs %}<option value="{{ o.id }}" {% if vacancy and vacancy.organization_id == o.id %}selected{% endif %}>{{ o.name }}</option>{% endfor %}
+    </select>
+  {% endif %}
+  </div>
+  <div class="col-md-6"><label class="form-label">Практика</label>
+    <select class="form-select" name="practice_id">
+      <option value="">—</option>
+      {% for p in practices %}<option value="{{ p.id }}" {% if vacancy and vacancy.practice_id == p.id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-12"><label class="form-label">Описание</label><textarea class="form-control" name="description" rows="3">{{ vacancy.description if vacancy else '' }}</textarea></div>
+  {% if komps %}<div class="col-12"><h6>Требования по компетенциям (мин. уровень 1-5, 0 — не требуется)</h6>
+    <div class="row g-2">{% for k in komps %}
+      {% set cur_lvl = vacancy.requirements | selectattr('kompetenciya_id','eq',k.id) | map(attribute='min_level') | first | default(0) if vacancy else 0 %}
+      <div class="col-md-4"><label class="form-label small">{{ k.name }}</label><input type="number" class="form-control form-control-sm" name="komp_{{ k.id }}" value="{{ cur_lvl }}" min="0" max="5"></div>
+    {% endfor %}</div></div>{% endif %}
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">{% if vacancy %}Сохранить{% else %}Создать{% endif %}</button>
+    <a href="{{ url_for('distribution.vacancy_view', vid=vacancy.id) if vacancy else url_for('distribution.index') }}" class="btn btn-outline-secondary">Отмена</a>
+  </div>
+</div></form></div></div>
+{% endblock %}

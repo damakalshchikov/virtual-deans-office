@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Компетенции — {{ student.full_name }}{% endblock %}
+{% block content %}
+<h3 class="mb-4">Компетенции студента: {{ student.full_name }}</h3>
+<div class="card"><div class="card-body">
+<form method="post"><div class="row g-3">
+  {% for k in komps %}
+  <div class="col-md-4"><label class="form-label">{{ k.name }}</label>
+    <input type="number" class="form-control" name="level_{{ k.id }}" min="0" max="5" value="{{ current_levels.get(k.id, 0) }}">
+  </div>{% endfor %}
+  <div class="col-12"><button type="submit" class="btn btn-primary">Сохранить</button>
+    <a href="{{ url_for('dashboard.admin_users') }}" class="btn btn-outline-secondary">Назад</a></div>
+</div></form></div></div>
+{% endblock %}

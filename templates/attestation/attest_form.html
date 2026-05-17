@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Аттестационный лист{% endblock %}
+{% block content %}
+<h3 class="mb-4">Аттестационный лист — {{ student.full_name }}</h3>
+<div class="card"><div class="card-body"><form method="post"><div class="row g-3">
+  <div class="col-md-4"><label class="form-label">Комиссия</label><select class="form-select" name="commission_id"><option value="">—</option>{% for c in commissions %}<option value="{{ c.id }}" {{ 'selected' if att and att.commission_id == c.id }}>{{ c.name }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><label class="form-label">Дневник (2-5)</label><input type="number" class="form-control" name="diary_grade" min="2" max="5" value="{{ att.diary_grade if att and att.diary_grade else '' }}"></div>
+  <div class="col-md-2"><label class="form-label">Отчёт (2-5)</label><input type="number" class="form-control" name="report_grade" min="2" max="5" value="{{ att.report_grade if att and att.report_grade else '' }}"></div>
+  <div class="col-md-2"><label class="form-label">Итог (2-5)</label><input type="number" class="form-control" name="final_grade" min="2" max="5" value="{{ att.final_grade if att and att.final_grade else '' }}"></div>
+  <div class="col-12"><label class="form-label">Рекомендации</label><textarea class="form-control" name="recommendation" rows="3">{{ att.recommendation if att and att.recommendation else '' }}</textarea></div>
+  <div class="col-12"><button type="submit" class="btn btn-primary">Сохранить</button></div>
+</div></form></div></div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Редактировать' if stage else 'Добавить' }} этап{% endblock %}
+{% block content %}
+<h3 class="mb-4">{{ 'Редактировать' if stage else 'Добавить' }} этап — {{ practice.name }}</h3>
+<div class="card"><div class="card-body">
+<form method="post"><div class="row g-3">
+  <div class="col-12"><label class="form-label">Название</label><input type="text" class="form-control" name="name" required value="{{ stage.name if stage else '' }}"></div>
+  <div class="col-md-4"><label class="form-label">Начало</label><input type="date" class="form-control" name="start_date" required value="{{ stage.start_date.isoformat() if stage and stage.start_date else '' }}"></div>
+  <div class="col-md-4"><label class="form-label">Окончание</label><input type="date" class="form-control" name="end_date" required value="{{ stage.end_date.isoformat() if stage and stage.end_date else '' }}"></div>
+  <div class="col-12"><label class="form-label">Описание</label><textarea class="form-control" name="description" rows="2">{{ stage.description if stage and stage.description else '' }}</textarea></div>
+  <div class="col-12"><button type="submit" class="btn btn-primary">Сохранить</button> <a href="{{ url_for('planning.stages', pid=practice.id) }}" class="btn btn-outline-secondary">Отмена</a></div>
+</div></form></div></div>
+{% endblock %}

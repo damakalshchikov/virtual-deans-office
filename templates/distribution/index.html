@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Вакансии и заявки{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="mb-0"><i class="fa-solid fa-people-arrows text-primary me-2"></i>Вакансии и заявки</h3>
+  {% if current_user.role in ('curator','admin') %}<a href="{{ url_for('distribution.vacancy_create') }}" class="btn btn-success"><i class="fa-solid fa-plus me-1"></i>Создать вакансию</a>{% endif %}
+</div>
+<div class="row g-3">{% for v in vacancies %}
+  <div class="col-md-6"><div class="card h-100">
+    <div class="card-body">
+      <h5>{{ v.title }} {% if v.status == 'open' %}<span class="badge bg-success">Открыта</span>{% else %}<span class="badge bg-secondary">Закрыта</span>{% endif %}</h5>
+      <p class="text-muted mb-1"><i class="fa-solid fa-city me-1"></i>{{ v.organization.name if v.organization else '—' }}</p>
+      <p class="text-muted mb-2"><i class="fa-solid fa-users me-1"></i>Мест: {{ v.slots }} | Заявок: {{ v.applications.count() }}</p>
+      <a href="{{ url_for('distribution.vacancy_view', vid=v.id) }}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+    </div></div></div>
+{% endfor %}</div>
+{% endblock %}

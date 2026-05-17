@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="mb-0"><i class="fa-solid fa-{{ icon }} text-primary me-2"></i>{{ title }}</h3>
+  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal"><i class="fa-solid fa-plus me-1"></i>Добавить</button>
+</div>
+<div class="card"><div class="card-body p-0">
+<table class="table table-hover mb-0"><thead class="table-light"><tr><th>ID</th><th>Название</th>
+{% if type == 'kafedra' %}<th>Факультет</th>{% elif type == 'org' %}<th>Адрес</th>{% endif %}<th>Действия</th></tr></thead>
+<tbody>{% for item in items %}<tr><td>{{ item.id }}</td><td>{{ item.name }}</td>
+  {% if type == 'kafedra' %}<td>{{ item.faculty }}</td>{% elif type == 'org' %}<td>{{ item.yur_adres or '—' }}</td>{% endif %}
+  <td><button class="btn btn-sm btn-outline-primary" onclick="editItem({{ item.id }},'{{ item.name }}','{{ item.faculty if type=='kafedra' else item.yur_adres or '' }}')"><i class="fa-solid fa-pen"></i></button></td>
+</tr>{% endfor %}</tbody></table>
+</div></div>
+
+<div class="modal fade" id="addModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <form method="post" action="{% if type == 'kafedra' %}{{ url_for('dashboard.admin_kafedra_save') }}{% elif type == 'org' %}{{ url_for('dashboard.admin_org_save') }}{% else %}{{ url_for('dashboard.admin_komp_save') }}{% endif %}">
+  <input type="hidden" name="id" id="item_id" value="">
+  <div class="modal-header"><h5 class="modal-title">Добавить / Редактировать</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="mb-3"><label class="form-label">Название</label><input type="text" class="form-control" name="name" id="item_name" required></div>
+    {% if type == 'kafedra' %}<div class="mb-3"><label class="form-label">Факультет</label><input type="text" class="form-control" name="faculty" id="item_extra" required></div>
+    {% elif type == 'org' %}<div class="mb-3"><label class="form-label">Юридический адрес</label><input type="text" class="form-control" name="yur_adres" id="item_extra"></div>{% endif %}
+  </div>
+  <div class="modal-footer"><button type="submit" class="btn btn-primary">Сохранить</button></div>
+  </form></div></div></div>
+
+<script>
+function editItem(id, name, extra) {
+  document.getElementById('item_id').value = id;
+  document.getElementById('item_name').value = name;
+  var ex = document.getElementById('item_extra');
+  if (ex) ex.value = extra;
+  new bootstrap.Modal(document.getElementById('addModal')).show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Проверка работы{% endblock %}
+{% block content %}
+<h3 class="mb-4">Проверка — {{ task.title }}</h3>
+<div class="card mb-3"><div class="card-body">
+  <p><strong>Студент:</strong> {{ task.student.full_name if task.student else '—' }}</p>
+  <p><strong>Результат:</strong></p><p>{{ execution.content }}</p>
+</div></div>
+<div class="card"><div class="card-body">
+<form method="post"><div class="mb-3"><label class="form-label">Комментарий</label><textarea class="form-control" name="comment" rows="3"></textarea></div>
+<button type="submit" name="action" value="accept" class="btn btn-success me-2"><i class="fa-solid fa-check me-1"></i>Принять</button>
+<button type="submit" name="action" value="reject" class="btn btn-danger"><i class="fa-solid fa-xmark me-1"></i>Отклонить</button>
+</form></div></div>
+{% endblock %}
