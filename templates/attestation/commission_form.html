@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Создать комиссию{% endblock %}
+{% block content %}
+<h3 class="mb-4">Создать комиссию</h3>
+<div class="card"><div class="card-body"><form method="post"><div class="row g-3">
+  <div class="col-md-6"><label class="form-label">Название</label><input type="text" class="form-control" name="name" required></div>
+  <div class="col-md-6"><label class="form-label">Председатель</label><input type="text" class="form-control" name="chairman" required></div>
+  <div class="col-md-4"><label class="form-label">Дата заседания</label><input type="date" class="form-control" name="session_date" required></div>
+  <div class="col-md-4"><label class="form-label">Кафедра</label><select class="form-select" name="kafedra_id"><option value="">—</option>{% for k in kafedras %}<option value="{{ k.id }}">{{ k.name }}</option>{% endfor %}</select></div>
+  <div class="col-12"><button type="submit" class="btn btn-primary">Создать</button> <a href="{{ url_for('attestation.commissions') }}" class="btn btn-outline-secondary">Отмена</a></div>
+</div></form></div></div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Планирование практики{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="mb-0"><i class="fa-solid fa-calendar-days text-primary me-2"></i>Планирование практики</h3>
+  {% if current_user.role in ('teacher','admin') %}<a href="{{ url_for('planning.create') }}" class="btn btn-success"><i class="fa-solid fa-plus me-1"></i>Создать практику</a>{% endif %}
+</div>
+<div class="card"><div class="card-body p-0">
+  <table class="table table-hover mb-0"><thead class="table-light"><tr><th>Название</th><th>Тип</th><th>Период</th><th>Руководитель</th><th>Статус</th><th>Действия</th></tr></thead>
+    <tbody>{% for p in practices %}<tr>
+      <td>{{ p.name }}</td><td>{{ p.type or '—' }}</td>
+      <td>{{ p.start_date.strftime('%d.%m.%Y') }} — {{ p.end_date.strftime('%d.%m.%Y') }}</td>
+      <td>{{ p.teacher.full_name if p.teacher else '—' }}</td>
+      <td>{% if p.status == 'active' %}<span class="badge bg-success">Активна</span>{% elif p.status == 'finished' %}<span class="badge bg-secondary">Завершена</span>{% else %}<span class="badge bg-info">Запланирована</span>{% endif %}</td>
+      <td>
+        <a href="{{ url_for('planning.stages', pid=p.id) }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-layer-group me-1"></i>Этапы</a>
+        {% if current_user.role in ('teacher','admin') %}<a href="{{ url_for('planning.edit', pid=p.id) }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-pen"></i></a>{% endif %}
+      </td></tr>{% endfor %}</tbody></table>
+</div></div>
+{% endblock %}

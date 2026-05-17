@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Подача {{ 'отчёта' if rtype == 'report' else 'дневника' }}{% endblock %}
+{% block content %}
+<h3 class="mb-4">Подача {{ 'итогового отчёта' if rtype == 'report' else 'дневника практики' }} — {{ practice.name }}</h3>
+<div class="card"><div class="card-body">
+<form method="post"><div class="mb-3"><label class="form-label">Содержание</label><textarea class="form-control" name="content" rows="8" required></textarea></div>
+<button type="submit" class="btn btn-primary">Отправить</button> <a href="{{ url_for('attestation.index') }}" class="btn btn-outline-secondary">Отмена</a>
+</form></div></div>
+{% endblock %}

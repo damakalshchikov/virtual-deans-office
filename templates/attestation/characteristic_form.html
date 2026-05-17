@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Характеристика{% endblock %}
+{% block content %}
+<h3 class="mb-4">Характеристика — {{ student.full_name }}</h3>
+<div class="card"><div class="card-body"><form method="post">
+  <div class="mb-3"><label class="form-label">Текст характеристики</label><textarea class="form-control" name="content" rows="6" required>{{ char.content if char else '' }}</textarea></div>
+  <div class="form-check mb-3"><input type="checkbox" class="form-check-input" name="signed" id="signed" {{ 'checked' if char and char.signed }}><label class="form-check-label" for="signed">Подписать</label></div>
+  <button type="submit" class="btn btn-primary">Сохранить</button>
+</form></div></div>
+{% endblock %}

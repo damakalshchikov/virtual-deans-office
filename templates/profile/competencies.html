@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Мои компетенции{% endblock %}
+{% block content %}
+<h3 class="mb-4"><i class="fa-solid fa-star text-primary me-2"></i>Мои компетенции</h3>
+{% if komps %}
+<div class="card"><div class="card-body p-0">
+  <table class="table table-hover mb-0"><thead class="table-light"><tr><th>Компетенция</th><th>Уровень</th></tr></thead>
+    <tbody>{% for sk in komps %}<tr><td>{{ sk.kompetenciya.name }}</td><td>
+      {% for i in range(5) %}{% if i < sk.level %}<i class="fa-solid fa-star text-warning"></i>{% else %}<i class="fa-regular fa-star text-muted"></i>{% endif %}{% endfor %}
+      ({{ sk.level }}/5)</td></tr>{% endfor %}</tbody></table>
+</div></div>
+{% else %}<div class="alert alert-info">Компетенции ещё не определены.</div>{% endif %}
+{% endblock %}

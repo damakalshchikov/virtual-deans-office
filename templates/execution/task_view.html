@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}{{ task.title }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('execution.index') }}" class="btn btn-outline-secondary btn-sm mb-3"><i class="fa-solid fa-arrow-left me-1"></i>Назад</a>
+<div class="card mb-4"><div class="card-body">
+  <h4>{{ task.title }}</h4>
+  <p><strong>Студент:</strong> {{ task.student.full_name if task.student else '—' }}</p>
+  <p><strong>Срок:</strong> {{ task.due_date.strftime('%d.%m.%Y') if task.due_date else '—' }}</p>
+  <p><strong>Статус:</strong>
+    {% if task.status == 'accepted' %}<span class="badge bg-success">Принято</span>
+    {% elif task.status == 'submitted' %}<span class="badge bg-info">На проверке</span>
+    {% elif task.status == 'in_progress' %}<span class="badge bg-warning text-dark">В процессе</span>
+    {% elif task.status == 'rejected' %}<span class="badge bg-danger">Отклонено</span>
+    {% else %}<span class="badge bg-secondary">Ожидает</span>{% endif %}</p>
+  {% if task.description %}<p>{{ task.description }}</p>{% endif %}
+  {% if current_user.role == 'student' %}
+    <div class="d-flex gap-2">
+      {% if task.status in ('pending','rejected') %}<form method="post" action="{{ url_for('execution.change_status', tid=task.id) }}"><input type="hidden" name="status" value="in_progress"><button class="btn btn-warning btn-sm">Начать выполнение</button></form>{% endif %}
+      {% if task.status in ('in_progress','rejected') %}<a href="{{ url_for('execution.submit_result', tid=task.id) }}" class="btn btn-primary btn-sm">Загрузить результат</a>{% endif %}
+    </div>
+  {% endif %}
+</div></div>
+{% if task.executions %}
+<h5>История сдач</h5>
+{% for e in task.executions %}
+<div class="card mb-2"><div class="card-body">
+  <small class="text-muted">{{ e.submitted_at.strftime('%d.%m.%Y %H:%M') }}</small>
+  <span class="badge {% if e.status == 'accepted' %}bg-success{% elif e.status == 'rejected' %}bg-danger{% else %}bg-info{% endif %} ms-2">{{ {'accepted':'Принято','rejected':'Отклонено','submitted':'На проверке'}[e.status] }}</span>
+  {% if e.content %}<p class="mt-2 mb-1">{{ e.content }}</p>{% endif %}
+  {% if e.comment %}<p class="text-muted mb-0"><em>Комментарий: {{ e.comment }}</em></p>{% endif %}
+  {% if current_user.role in ('curator','teacher','admin') and e.status == 'submitted' %}<a href="{{ url_for('execution.review', tid=task.id, eid=e.id) }}" class="btn btn-sm btn-outline-primary mt-2">Проверить</a>{% endif %}
+</div></div>{% endfor %}
+{% endif %}
+{% endblock %}

@@ -18,12 +18,23 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+    # Blueprints
     from auth.routes import bp as auth_bp
     from dashboard.routes import bp as dashboard_bp
+    from planning.routes import bp as planning_bp
+    from distribution.routes import bp as distribution_bp
+    from execution.routes import bp as execution_bp
+    from attestation.routes import bp as attestation_bp
+    from profile.routes import bp as profile_bp
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(planning_bp)
+    app.register_blueprint(distribution_bp)
+    app.register_blueprint(execution_bp)
+    app.register_blueprint(attestation_bp)
+    app.register_blueprint(profile_bp)
 
-    # Регистрируем has_permission как глобальную функцию в Jinja2
     from access.decorators import has_permission
     app.jinja_env.globals['has_permission'] = has_permission
 

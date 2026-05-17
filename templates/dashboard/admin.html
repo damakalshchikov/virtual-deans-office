@@ -1,110 +1,27 @@
 {% extends 'base.html' %}
 {% block title %}Управление пользователями{% endblock %}
-
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h3 class="mb-0"><i class="fa-solid fa-users-gear text-primary me-2"></i>Управление пользователями</h3>
-  <div class="d-flex gap-2">
-    <a href="{{ url_for('dashboard.admin_permissions') }}" class="btn btn-outline-primary">
-      <i class="fa-solid fa-shield-halved me-1"></i>Права доступа
-    </a>
-    <a href="{{ url_for('dashboard.admin_user_create') }}" class="btn btn-success">
-      <i class="fa-solid fa-user-plus me-1"></i>Создать пользователя
-    </a>
-  </div>
+  <h3 class="mb-0"><i class="fa-solid fa-users-gear text-primary me-2"></i>Пользователи</h3>
+  <a href="{{ url_for('dashboard.admin_user_create') }}" class="btn btn-success"><i class="fa-solid fa-user-plus me-1"></i>Создать</a>
 </div>
-
-{% set role_labels = {"student": "Студент", "curator": "Куратор",
-                       "teacher": "Преподаватель", "admin": "Администратор"} %}
-
-<div class="card">
-  <div class="card-body p-0">
-    <table class="table table-hover align-middle mb-0">
-      <thead class="table-light">
-        <tr>
-          <th class="text-center" style="width:50px;">№</th>
-          <th>Логин</th>
-          <th>Роль</th>
-          <th>Статус</th>
-          <th>ФИО</th>
-          <th>Группа</th>
-          <th>Кафедра</th>
-          <th class="text-center" style="width:220px;">Действия</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for u in users %}
-        <tr class="{{ 'table-secondary text-muted' if not u.is_active }}">
-          <td class="text-center text-muted small">{{ loop.index }}</td>
-          <td>{{ u.login }}</td>
-          <td>
-            <span class="badge rounded-pill
-              {% if u.role == 'admin' %}bg-danger
-              {% elif u.role == 'teacher' %}bg-primary
-              {% elif u.role == 'curator' %}bg-warning text-dark
-              {% else %}bg-info text-dark
-              {% endif %}">
-              {{ role_labels.get(u.role, u.role) }}
-            </span>
-          </td>
-          <td>
-            {% if u.is_active %}
-              <span class="badge bg-success">Активен</span>
-            {% else %}
-              <span class="badge bg-secondary">Деактивирован</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if u.profile %}
-              {{ u.profile.full_name }}
-            {% else %}
-              <span class="text-muted">—</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if u.student and u.student.group_name %}
-              {{ u.student.group_name }}
-            {% else %}
-              <span class="text-muted">—</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if u.profile and u.profile.kafedra %}
-              {{ u.profile.kafedra.name }}
-            {% else %}
-              <span class="text-muted">—</span>
-            {% endif %}
-          </td>
-          <td class="text-center">
-            <a href="{{ url_for('dashboard.admin_user_edit', user_id=u.id) }}"
-               class="btn btn-sm btn-outline-primary">
-              <i class="fa-solid fa-pen-to-square me-1"></i>Редактировать
-            </a>
-            <form method="post"
-                  action="{{ url_for('dashboard.admin_user_toggle', user_id=u.id) }}"
-                  class="d-inline ms-1">
-              {% if u.id == current_user.id %}
-                <button class="btn btn-sm btn-outline-secondary" disabled
-                        title="Нельзя изменить собственную учётную запись">
-                  <i class="fa-solid fa-lock"></i>
-                </button>
-              {% elif u.is_active %}
-                <button type="submit" class="btn btn-sm btn-outline-danger"
-                        title="Деактивировать">
-                  <i class="fa-solid fa-ban"></i>
-                </button>
-              {% else %}
-                <button type="submit" class="btn btn-sm btn-outline-success"
-                        title="Активировать">
-                  <i class="fa-solid fa-check"></i>
-                </button>
-              {% endif %}
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+{% set role_labels = {"student":"Студент","curator":"Куратор","teacher":"Преподаватель","admin":"Администратор"} %}
+<div class="card"><div class="card-body p-0">
+<table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th class="text-center" style="width:40px">№</th><th>Логин</th><th>Роль</th><th>Статус</th><th>ФИО</th><th>Группа</th><th class="text-center" style="width:200px">Действия</th></tr></thead>
+<tbody>{% for u in users %}<tr class="{{ 'table-secondary text-muted' if not u.is_active }}">
+  <td class="text-center text-muted small">{{ loop.index }}</td><td>{{ u.login }}</td>
+  <td><span class="badge {% if u.role=='admin' %}bg-danger{% elif u.role=='teacher' %}bg-primary{% elif u.role=='curator' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">{{ role_labels.get(u.role, u.role) }}</span></td>
+  <td>{% if u.is_active %}<span class="badge bg-success">Активен</span>{% else %}<span class="badge bg-secondary">Деакт.</span>{% endif %}</td>
+  <td>{{ u.profile.full_name if u.profile else '—' }}</td>
+  <td>{{ u.student.group_name if u.student else '—' }}</td>
+  <td class="text-center">
+    <a href="{{ url_for('dashboard.admin_user_edit', user_id=u.id) }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
+    {% if u.role == 'student' and u.student %}<a href="{{ url_for('dashboard.admin_student_komps', sid=u.student.id) }}" class="btn btn-sm btn-outline-info" title="Компетенции"><i class="fa-solid fa-brain"></i></a>{% endif %}
+    <form method="post" action="{{ url_for('dashboard.admin_user_toggle', user_id=u.id) }}" class="d-inline">
+      {% if u.id == current_user.id %}<button class="btn btn-sm btn-outline-secondary" disabled><i class="fa-solid fa-lock"></i></button>
+      {% elif u.is_active %}<button type="submit" class="btn btn-sm btn-outline-danger" title="Деактивировать"><i class="fa-solid fa-ban"></i></button>
+      {% else %}<button type="submit" class="btn btn-sm btn-outline-success" title="Активировать"><i class="fa-solid fa-check"></i></button>{% endif %}
+    </form>
+  </td></tr>{% endfor %}</tbody></table>
+</div></div>
 {% endblock %}

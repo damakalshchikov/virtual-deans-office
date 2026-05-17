@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Редактировать' if practice else 'Создать' }} практику{% endblock %}
+{% block content %}
+<h3 class="mb-4"><i class="fa-solid fa-calendar-plus text-primary me-2"></i>{{ 'Редактировать' if practice else 'Создать' }} практику</h3>
+<div class="card"><div class="card-body">
+<form method="post">
+  <div class="row g-3">
+    <div class="col-md-8"><label class="form-label">Название</label><input type="text" class="form-control" name="name" required value="{{ practice.name if practice else '' }}"></div>
+    <div class="col-md-4"><label class="form-label">Тип</label><select class="form-select" name="type">
+      <option value="">—</option>{% for t in ['Учебная','Производственная','Преддипломная'] %}<option value="{{ t }}" {{ 'selected' if practice and practice.type == t }}>{{ t }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><label class="form-label">Начало</label><input type="date" class="form-control" name="start_date" required value="{{ practice.start_date.isoformat() if practice and practice.start_date else '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Окончание</label><input type="date" class="form-control" name="end_date" required value="{{ practice.end_date.isoformat() if practice and practice.end_date else '' }}"></div>
+    <div class="col-md-3"><label class="form-label">Руководитель</label><select class="form-select" name="teacher_id"><option value="">—</option>{% for t in teachers %}<option value="{{ t.id }}" {{ 'selected' if practice and practice.teacher_id == t.id }}>{{ t.full_name }}</option>{% endfor %}</select></div>
+    {% if practice %}<div class="col-md-3"><label class="form-label">Статус</label><select class="form-select" name="status">{% for s,l in [('planned','Запланирована'),('active','Активна'),('finished','Завершена')] %}<option value="{{ s }}" {{ 'selected' if practice.status == s }}>{{ l }}</option>{% endfor %}</select></div>{% endif %}
+    <div class="col-12"><label class="form-label">Описание</label><textarea class="form-control" name="description" rows="3">{{ practice.description if practice and practice.description else '' }}</textarea></div>
+    <div class="col-12"><button type="submit" class="btn btn-primary">Сохранить</button> <a href="{{ url_for('planning.index') }}" class="btn btn-outline-secondary">Отмена</a></div>
+  </div>
+</form></div></div>
+{% endblock %}
