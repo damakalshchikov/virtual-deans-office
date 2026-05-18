@@ -2,9 +2,28 @@
 {% block title %}Характеристика{% endblock %}
 {% block content %}
 <h3 class="mb-4">Характеристика — {{ student.full_name }}</h3>
-<div class="card"><div class="card-body"><form method="post">
+<div class="card"><div class="card-body">
+<form method="post" enctype="multipart/form-data">
   <div class="mb-3"><label class="form-label">Текст характеристики</label><textarea class="form-control" name="content" rows="6" required>{{ char.content if char else '' }}</textarea></div>
-  <div class="form-check mb-3"><input type="checkbox" class="form-check-input" name="signed" id="signed" {{ 'checked' if char and char.signed }}><label class="form-check-label" for="signed">Подписать</label></div>
+  {% if char and char.file_path %}
+  <div class="mb-3">
+    <label class="form-label">Прикреплённый файл</label><br>
+    <a href="{{ url_for('static', filename='uploads/attestation_files/' + char.file_path) }}"
+       class="btn btn-sm btn-outline-secondary" download="{{ char.file_name }}">
+      <i class="fa-solid fa-paperclip me-1"></i>{{ char.file_name }}
+    </a>
+    <div class="form-text mt-1">Загрузите новый файл, чтобы заменить текущий.</div>
+  </div>
+  {% endif %}
+  <div class="mb-3">
+    <label class="form-label">{{ 'Заменить файл' if char and char.file_path else 'Прикрепить файл' }}</label>
+    <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.zip,.xlsx,.xls">
+    <div class="form-text">Допустимые форматы: PDF, DOC, DOCX, TXT, PNG, JPG, ZIP, XLSX, XLS. Максимум 16 МБ.</div>
+  </div>
+  <div class="form-check mb-3">
+    <input type="checkbox" class="form-check-input" name="signed" id="signed" {{ 'checked' if char and char.signed }}>
+    <label class="form-check-label" for="signed">Подписать</label>
+  </div>
   <button type="submit" class="btn btn-primary">Сохранить</button>
 </form></div></div>
 {% endblock %}

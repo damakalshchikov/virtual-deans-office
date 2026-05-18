@@ -2,7 +2,18 @@
 {% block title %}Проверка {{ 'отчёта' if report.type == 'report' else 'дневника' }}{% endblock %}
 {% block content %}
 <h3 class="mb-4">Проверка — {{ report.student.full_name }}</h3>
-<div class="card mb-3"><div class="card-body"><p>{{ report.content }}</p></div></div>
+<div class="card mb-3"><div class="card-body">
+  {% if report.content %}<p class="mb-2">{{ report.content }}</p>{% endif %}
+  {% if report.file_path %}
+  <a href="{{ url_for('static', filename='uploads/attestation_files/' + report.file_path) }}"
+     class="btn btn-sm btn-outline-secondary" download="{{ report.file_name }}">
+    <i class="fa-solid fa-paperclip me-1"></i>{{ report.file_name }}
+  </a>
+  {% endif %}
+  {% if not report.content and not report.file_path %}
+  <p class="text-muted mb-0">Содержание не указано.</p>
+  {% endif %}
+</div></div>
 <div class="card"><div class="card-body"><form method="post">
   <div class="mb-3"><label class="form-label">Комментарий</label><textarea class="form-control" name="comment" rows="3"></textarea></div>
   <button type="submit" name="action" value="approve" class="btn btn-success me-2">Одобрить</button>

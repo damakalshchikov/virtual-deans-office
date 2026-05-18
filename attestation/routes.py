@@ -1,13 +1,31 @@
-from datetime import date as _date
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+import os
+import uuid
+from datetime import date as _date, datetime
+from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from flask_login import login_required, current_user
-from datetime import datetime
+from werkzeug.utils import secure_filename
 from access.decorators import requires_role
 from models import (db, Report, Characteristic, Commission, Attestation,
                      Practice, Student, Kafedra)
 from helpers import notify
 
 bp = Blueprint("attestation", __name__, url_prefix="/attestation")
+
+ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "txt", "png", "jpg", "jpeg", "zip", "xlsx", "xls"}
+
+
+def _save_file(file):
+    if not file or not file.filename:
+        return None, None
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in ALLOWED_EXTENSIONS:
+        return None, None
+    original_name = secure_filename(file.filename)
+    unique_name = f"{uuid.uuid4().hex}_{original_name}"
+    upload_dir = os.path.join(current_app.root_path, "static", "uploads", "attestation_files")
+    os.makedirs(upload_dir, exist_ok=True)
+    file.save(os.path.join(upload_dir, unique_name))
+    return unique_name, original_name
 
 
 @bp.route("/")
@@ -26,11 +44,14 @@ def submit_report(pid):
     p = Practice.query.get_or_404(pid)
     rtype = request.args.get("type", "report")
     if request.method == "POST":
+        file_path, file_name = _save_file(request.files.get("file"))
         r = Report(
             student_id=current_user.student.id,
             practice_id=pid,
             type=rtype,
             content=request.form.get("content", ""),
+            file_path=file_path,
+            file_name=file_name,
             status="submitted",
             submitted_at=datetime.utcnow(),
         )
@@ -72,15 +93,21 @@ def characteristic(pid, sid):
     s = Student.query.get_or_404(sid)
     existing = Characteristic.query.filter_by(student_id=sid, practice_id=pid).first()
     if request.method == "POST":
+        file_path, file_name = _save_file(request.files.get("file"))
         if existing:
             existing.content = request.form["content"]
             existing.signed = "signed" in request.form
+            if file_path:
+                existing.file_path = file_path
+                existing.file_name = file_name
         else:
             c = Characteristic(
                 student_id=sid, practice_id=pid,
                 curator_id=current_user.curator.id,
                 content=request.form["content"],
                 signed="signed" in request.form,
+                file_path=file_path,
+                file_name=file_name,
             )
             db.session.add(c)
         db.session.commit()
@@ -88,6 +115,13 @@ def characteristic(pid, sid):
         return redirect(url_for("attestation.practice_detail", pid=pid))
     return render_template("attestation/characteristic_form.html",
                            practice=p, student=s, char=existing)
+
+
+@bp.route("/characteristic/<int:cid>")
+@login_required
+def characteristic_view(cid):
+    c = Characteristic.query.get_or_404(cid)
+    return render_template("attestation/characteristic_view.html", char=c)
 
 
 # ── Аттестационный лист ──────────────────────────────────────────────────

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Характеристика — {{ char.student.full_name }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('attestation.practice_detail', pid=char.practice_id) }}" class="btn btn-outline-secondary btn-sm mb-3">
+  <i class="fa-solid fa-arrow-left me-1"></i>Назад
+</a>
+<h4 class="mb-4">Характеристика — {{ char.student.full_name }}</h4>
+<div class="card mb-3">
+  <div class="card-body">
+    <dl class="row mb-3">
+      <dt class="col-sm-3">Практика</dt>
+      <dd class="col-sm-9">{{ char.practice.name }}</dd>
+      <dt class="col-sm-3">Куратор</dt>
+      <dd class="col-sm-9">{{ char.curator.full_name }}</dd>
+      <dt class="col-sm-3">Подписана</dt>
+      <dd class="col-sm-9">{{ 'Да' if char.signed else 'Нет' }}</dd>
+      <dt class="col-sm-3">Дата создания</dt>
+      <dd class="col-sm-9">{{ char.created_at.strftime('%d.%m.%Y %H:%M') }}</dd>
+    </dl>
+    <hr>
+    <p style="white-space: pre-wrap">{{ char.content }}</p>
+    {% if char.file_path %}
+    <hr>
+    <a href="{{ url_for('static', filename='uploads/attestation_files/' + char.file_path) }}"
+       class="btn btn-sm btn-outline-secondary" download="{{ char.file_name }}">
+      <i class="fa-solid fa-paperclip me-1"></i>{{ char.file_name }}
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% if current_user.role == 'curator' and current_user.curator.id == char.curator_id %}
+<a href="{{ url_for('attestation.characteristic', pid=char.practice_id, sid=char.student_id) }}" class="btn btn-outline-primary btn-sm">
+  <i class="fa-solid fa-pen me-1"></i>Редактировать
+</a>
+{% endif %}
+{% endblock %}
